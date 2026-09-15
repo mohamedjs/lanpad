@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { codeToKeysym } from './keymap.js';
-import { push, move, flush, setStatusHandler, connect, token, setToken } from './sender.js';
+import { push, move, flush, setStatusHandler, connect, setActive, token, setToken } from './sender.js';
 
 const combo = (mods, key) => {
   mods.forEach((m) => push('k', m, 1));
@@ -33,8 +33,13 @@ export default function App() {
   // 4ms is the browser's floor for a timer; moves coalesce between ticks, so this caps
   // the socket at ~250 frames/sec without adding meaningful delay
   useEffect(() => { const id = setInterval(flush, 4); return () => clearInterval(id); }, []);
-  useEffect(() => {
-    const id = setInterval(() => { setHz(rate.current); rate.current = 0; }, 1000);
+  useEffect(() => {                                 // measured against the real elapsed
+    let t0 = performance.now();                     // time, not an assumed 1000ms tick
+    const id = setInterval(() => {
+      const now = performance.now();
+      setHz(Math.round((rate.current * 1000) / (now - t0)));
+      rate.current = 0; t0 = now;
+    }, 1000);
     return () => clearInterval(id);
   }, []);
   useEffect(() => { localStorage.setItem('cmdAs', cmdAs); }, [cmdAs]);
@@ -60,12 +65,16 @@ export default function App() {
     const onLockChange = () => {
       const on = locked();
       setCaptured(on);
+      setActive(on);                              // keep the radio awake only while driving
       if (!on) { release(); navigator.keyboard?.unlock?.(); }
     };
 
     const onMove = (e) => {
       if (!locked()) return;
       rate.current++;
+      // Only the event itself carries movementX/Y — the entries from
+      // getCoalescedEvents() come back as zero on pointerrawupdate, which freezes
+      // the pointer. Do not reach for them again.
       move(e.movementX, e.movementY);
     };
     const onBtn = (down) => (e) => {

@@ -2,6 +2,7 @@
    version cost a round trip per frame, which is what made the pointer feel laggy. */
 const queue = [];
 let ws = null, ready = false, status = '', report = () => {}, rtt = 0;
+const recent = [];
 
 const setStatus = (s) => { status = s; report(s); };
 export const setStatusHandler = (fn) => { report = fn; fn(status); };
@@ -25,8 +26,14 @@ export function connect() {
   ws.onmessage = (e) => {
     const m = JSON.parse(e.data);
     if (m.p !== undefined) {                    // probe came back: that is the true round trip
-      rtt = Math.round(performance.now() - m.p);
-      if (ready) setStatus(`connected · ${rtt} ms`);
+      rtt = performance.now() - m.p;
+      recent.push(rtt);
+      if (recent.length > 12) recent.shift();
+      // min matters as much as the latest: a lone packet after an idle gap gets held
+      // by WiFi power-save, so the median alone reads high while moving feels fine
+      const sorted = [...recent].sort((a, b) => a - b);
+      const med = Math.round(sorted[sorted.length >> 1]);
+      if (ready) setStatus(`connected · ${med} ms (min ${Math.round(sorted[0])})`);
       return;
     }
     ready = !!m.ok;
@@ -58,26 +65,51 @@ function encode(evs) {
   return v.buffer.slice(0, o);
 }
 
+/* A trackpad has gaps — between strokes, while you read, between clicks. WiFi power-save
+   parks the radio in those gaps, and the next packet then waits for it to wake: that is a
+   15ms link measuring 60ms. One byte every 16ms while captured keeps it awake. The server
+   ignores type 0. */
+const KEEPALIVE = new Uint8Array([0]);
+let lastSend = 0, active = false;
+
+export const setActive = (v) => { active = v; };
+
 export function flush() {
-  if (!ready || !queue.length) return;
+  if (!ready) return;
+  const now = performance.now();
+  if (!queue.length) {
+    if (active && now - lastSend > 16) { ws.send(KEEPALIVE); lastSend = now; }
+    return;
+  }
   const ev = queue.splice(0, queue.length);
   ws.send(ev.every((e) => TYPE[e[0]]) ? encode(ev) : JSON.stringify({ ev }));
+  lastSend = now;
 }
 
 export const push = (...ev) => { queue.push(ev); flush(); };
 
+/* X11 only takes whole pixels, but a trackpad reports fractions — and rounding each
+   batch away throws that away, which is what makes slow, precise movement drift and
+   feel coarse. Carry the remainder into the next one instead. */
+const frac = { x: 0, y: 0 };
+
 export function move(dx, dy) {
+  frac.x += dx; frac.y += dy;
+  const ix = Math.trunc(frac.x), iy = Math.trunc(frac.y);
+  frac.x -= ix; frac.y -= iy;
+  if (!ix && !iy) return;
   const last = queue[queue.length - 1];
-  if (last && last[0] === 'm') { last[1] += dx; last[2] += dy; }   // coalesce within a tick
-  else queue.push(['m', dx, dy]);
+  if (last && last[0] === 'm') { last[1] += ix; last[2] += iy; }   // coalesce within a tick
+  else queue.push(['m', ix, iy]);
 }
 
 let probing = false;
 function probe() {
   if (probing) return;
   probing = true;
-  setInterval(() => {
-    if (ready && ws.readyState === 1) ws.send(JSON.stringify({ p: performance.now() }));
-  }, 1000);
+  setInterval(() => {                           // often enough to ride with the event
+    if (ready && ws.readyState === 1)           // stream instead of measuring an idle link
+      ws.send(JSON.stringify({ p: performance.now() }));
+  }, 250);
 }
 export const lastRtt = () => rtt;

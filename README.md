@@ -4,7 +4,17 @@ The Mac opens a page, clicks once, and from then on its **real trackpad/mouse an
 keyboard drive Ubuntu** (Pointer Lock + key forwarding). Press `Esc` to hand them back.
 Nothing to install on the Mac.
 
-## Run (on the Ubuntu laptop, as your own user, inside the desktop session)
+## Run (on the Ubuntu laptop)
+
+It is installed as a user service, so it starts when you log in and stops when you log
+out — a logout kills the X server it drives, and a server left running past that accepts
+input and silently drops it:
+
+    systemctl --user status lanpad        # is it up?
+    systemctl --user restart lanpad       # after changing server.py
+    journalctl --user -u lanpad -f        # live log
+
+To run it by hand instead, stop the service first (`systemctl --user stop lanpad`):
 
     python3 /var/www/html/lanpad/server.py
 
@@ -67,4 +77,4 @@ The `#token` is the password; without it every request is 403.
 - Check the input path still works: `python3 server.py --selftest` — it asserts pointer
   moves, clamping at the screen edge, and that every keysym the client can send maps to a
   real keycode.
-- Stop it: `pgrep -af 'server\.py'` then `kill <pid>`.
+- Stop it: `systemctl --user stop lanpad` (and `disable` to stop it starting at login).
