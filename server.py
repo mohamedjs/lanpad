@@ -147,8 +147,30 @@ def ws_frames(rfile):
             data[i] ^= mask[i & 3]
         if op == 8:                                 # close
             return
-        if op == 1:                                 # text
-            yield data.decode("utf-8", "replace")
+        if op in (1, 2):                            # text / binary
+            yield op, bytes(data)
+
+
+def unpack(buf):
+    """Compact wire format for the hot path — one byte of type, then the numbers.
+    5 bytes for a move against ~30 for the JSON equivalent.
+        1 dx:i16 dy:i16   move
+        2 button:u8 down:u8
+        3 dx:i8 dy:i8     scroll
+    Keys stay JSON: they carry names, and they are rare."""
+    import struct
+    ev, i, n = [], 0, len(buf)
+    while i < n:
+        t = buf[i]
+        if t == 1 and i + 5 <= n:
+            ev.append(["m", *struct.unpack_from("<hh", buf, i + 1)]); i += 5
+        elif t == 2 and i + 3 <= n:
+            ev.append(["b", buf[i + 1], buf[i + 2]]); i += 3
+        elif t == 3 and i + 3 <= n:
+            ev.append(["s", *struct.unpack_from("<bb", buf, i + 1)]); i += 3
+        else:
+            break                                   # malformed: keep what parsed
+    return ev
 
 
 def ws_send(wfile, text):
@@ -212,10 +234,20 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.flush()
         ip, authed = self.client_address[0], False
         try:
-            for text in ws_frames(self.rfile):
+            for op, payload in ws_frames(self.rfile):
+                if op == 2:                         # binary: pointer events only
+                    if not authed:
+                        return
+                    ev = unpack(payload)
+                    log(ip, ev)
+                    apply(ev)
+                    continue
                 try:
-                    msg = json.loads(text)
+                    msg = json.loads(payload.decode("utf-8", "replace"))
                 except ValueError:
+                    continue
+                if "p" in msg:                      # latency probe: echo it straight back
+                    ws_send(self.wfile, payload.decode())
                     continue
                 if not authed:                      # first frame must be the token
                     if not secrets.compare_digest(str(msg.get("t", "")), TOKEN):
@@ -253,6 +285,26 @@ class Handler(BaseHTTPRequestHandler):
         self._send(204)
 
 
+CERT = os.path.expanduser("~/.lanpad-cert.pem")
+
+
+def tls_context(ip):
+    """Self-signed cert, made once. Chrome warns about it, but once you click through,
+    the page counts as a secure context — which is what switches on Keyboard Lock
+    (Esc, Tab and the ⌘ combos stop being swallowed by macOS)."""
+    import ssl, subprocess
+    if not os.path.exists(CERT):
+        subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes",
+                        "-keyout", CERT, "-out", CERT, "-days", "3650",
+                        "-subj", "/CN=lanpad",
+                        "-addext", "subjectAltName=IP:%s,IP:127.0.0.1,DNS:localhost" % ip],
+                       check=True, capture_output=True)
+        os.chmod(CERT, 0o600)
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ctx.load_cert_chain(CERT)
+    return ctx
+
+
 def lan_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
@@ -272,6 +324,12 @@ def selftest():
         assert _keycode(chr(c))[0], "no keycode for %r" % chr(c)
     for name in KEYSYMS:                            # every name web/src/keymap.js can emit
         assert _keycode(name)[0], "no keycode for %s" % name
+    import struct
+    wire = (bytes([1]) + struct.pack("<hh", -3, 7) + bytes([2, 1, 1]) + bytes([3]) +
+            struct.pack("<bb", 0, -2))
+    assert unpack(wire) == [["m", -3, 7], ["b", 1, 1], ["s", 0, -2]], unpack(wire)
+    assert unpack(bytes([1, 5])) == []              # truncated frame must not raise
+
     apply([["m", W * 2, H * 2]])                    # clamp must not crash or wedge
     assert SCREEN.root.query_pointer().root_x == W - 1
     apply([["m", -W * 2, -H * 2]])
@@ -284,9 +342,16 @@ if __name__ == "__main__":
         sys.exit(0)
     if not os.path.isfile(os.path.join(DIST, "index.html")):
         sys.exit("web/dist is missing — run:  cd %s && npm install && npm run build" % os.path.join(HERE, "web"))
-    print("\n  Open on your Mac:  http://%s:%d/#%s\n" % (lan_ip(), PORT, TOKEN))
+    ip, tls = lan_ip(), "--tls" in sys.argv or os.environ.get("LANPAD_TLS") == "1"
+    print("\n  Open on your Mac:  %s://%s:%d/#%s\n" % ("https" if tls else "http", ip, PORT, TOKEN))
+    if tls:
+        print("  Chrome will warn about the certificate — Advanced, then Proceed.")
+        print("  That unlocks Esc, Tab and the Cmd keys, which macOS otherwise keeps.\n")
     try:
-        ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
+        httpd = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+        if tls:
+            httpd.socket = tls_context(ip).wrap_socket(httpd.socket, server_side=True)
+        httpd.serve_forever()
     except OSError as e:
         sys.exit("port %d busy — it's probably already running (%s)" % (PORT, e))
     except KeyboardInterrupt:

@@ -13,10 +13,33 @@ The `#token` is the password; without it every request is 403.
 
 ## What it is
 
-- `server.py` — stdlib HTTP server + python-xlib XTEST. No dependencies, no sudo, no apt.
-  Serves the built React app and takes batched input events on `POST /e`.
+- `server.py` — stdlib HTTP + WebSocket server (hand-rolled, no library) + python-xlib
+  XTEST. No dependencies, no sudo, no apt. Serves the built React app and takes input over
+  one socket: pointer moves, buttons and scroll as 5- and 3-byte binary frames, keys as
+  JSON (they carry names). `POST /e` still works as a fallback.
 - `web/` — React (Vite). `npm install && npm run build` writes `web/dist/`, which the
   server serves. Rebuild after any change under `web/src/`.
+
+## Trackpad gestures
+
+- move, tap-to-click and two-finger tap (right click) come through as-is
+- two-finger scroll is accumulated and converted to X11 scroll clicks, so momentum
+  scrolling glides instead of jumping; horizontal swipe scrolls sideways
+- pinch is sent as Ctrl+scroll, which is what Ubuntu apps read as zoom
+- flip the **natural scrolling** switch if the direction feels backwards
+- **two-finger flicks left/right** switch workspace (toggle **swipe ←→ workspace**).
+  Up and down are scrolling only — a browser cannot count fingers on the trackpad, so a
+  vertical flick and a fast scroll are the same event
+- for overview and minimize without gestures, use the keys: **⌘ alone** opens the overview
+  (⌘ is sent as Super), **⌘D** shows the desktop, **⌘H** minimizes. These need the tunnel
+  (Keyboard Lock), otherwise macOS eats them.
+- the page blocks Chrome's swipe-to-go-back and pinch-to-zoom, so a stray gesture can't
+  navigate the Mac away from the session. macOS space switching is above the browser and
+  can't be blocked — run the page **fullscreen** so a space swipe has nowhere to go
+- **three- and four-finger gestures are eaten by macOS** — they never reach the browser,
+  so no web page can forward them. To get real three-finger swipes, map them on the Mac
+  to a keyboard shortcut (BetterTouchTool, or Karabiner): the browser *does* receive
+  keystrokes, so whatever you map them to gets forwarded like any other key.
 
 ## Limits worth knowing before you hit them
 

@@ -7,6 +7,11 @@
   --sunk: inset 5px 5px 11px var(--lo), inset -5px -5px 11px var(--hi);
 }
 * { box-sizing:border-box; }
+html, body {
+  overscroll-behavior:none;      /* stops Chrome's swipe-to-go-back on macOS */
+  touch-action:none;
+  overflow:hidden;
+}
 body {
   margin:0; background:var(--base); color:var(--fg);
   font:15px/1.5 -apple-system,system-ui,sans-serif;
@@ -67,3 +72,13 @@ select option { background:var(--base); }
 }
 .token:focus { border-color:#6ea8ff66; }
 code { font-size:.9em; opacity:.85; }
+input[type=checkbox] {
+  appearance:none; width:38px; height:22px; border-radius:11px; position:relative; cursor:pointer;
+  background:var(--glass); border:1px solid var(--edge); box-shadow:var(--sunk); transition:background .2s;
+}
+input[type=checkbox]::after {
+  content:""; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%;
+  background:var(--dim); box-shadow:var(--soft); transition:transform .18s, background .18s;
+}
+input[type=checkbox]:checked { border-color:#6ea8ff66; }
+input[type=checkbox]:checked::after { transform:translateX(16px); background:var(--accent); }
