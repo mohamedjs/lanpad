@@ -11,6 +11,10 @@ on:
 
 permissions:
   contents: write
+  actions: write
+
+env:
+  PYTHON_VERSION: "3.12"
 
 jobs:
   version:
@@ -27,87 +31,119 @@ jobs:
           [ -n "$V" ] || V="$CODE"
           echo "version=$V" >> "$GITHUB_OUTPUT"
 
-  build-linux:
+  build:
     needs: [version]
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-22.04, target: linux }
+          - { os: macos-latest, target: macos-arm64 }
+          - { os: windows-latest, target: windows }
+    runs-on: ${{ matrix.os }}
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: sudo apt-get update && sudo apt-get install -y python3-xlib dpkg-dev
-      - run: |
-          cd web && npm install && npm run build && cd ..
-          pip install pyinstaller python-xlib
-          pyinstaller packaging/pyinstaller/lanpad.spec
-          packaging/linux/build-deb.sh "${{ needs.version.outputs.version }}" amd64
-          tar -czf "dist/lanpad-linux-amd64-${{ needs.version.outputs.version }}.tar.gz" -C dist lanpad
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux-dist
-          path: |
-            dist/*.deb
-            dist/*.tar.gz
 
-  build-macos:
-    needs: [version]
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: |
-          cd web && npm install && npm run build && cd ..
-          pip install pyinstaller pyobjc-core
-          pyinstaller packaging/pyinstaller/lanpad.spec
-          tar -czf "dist/lanpad-macos-arm64-${{ needs.version.outputs.version }}.tar.gz" -C dist lanpad
-      - uses: actions/upload-artifact@v4
         with:
-          name: macos-dist
-          path: dist/*.tar.gz
+          python-version: ${{ env.PYTHON_VERSION }}
 
-  build-windows:
-    needs: [version]
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
       - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: |
+        with:
+          node-version: 22
+
+      - name: System libraries (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-xlib dpkg-dev
+
+      - name: Build web client
+        run: |
           cd web
           npm install
           npm run build
-          cd ..
-          pip install pyinstaller
-          pyinstaller packaging/pyinstaller/lanpad.spec
-          iscc /DAppVersion=${{ needs.version.outputs.version }} packaging/windows/lanpad.iss
-          Compress-Archive -Path dist\lanpad -DestinationPath "dist\lanpad-windows-x64-${{ needs.version.outputs.version }}.zip"
+
+      - name: Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "pyinstaller>=6"
+          if [ "$RUNNER_OS" = "Linux" ]; then pip install python-xlib; fi
+          if [ "$RUNNER_OS" = "macOS" ]; then pip install pyobjc-core; fi
+        shell: bash
+
+      - name: Build with PyInstaller
+        run: pyinstaller --noconfirm --clean packaging/pyinstaller/lanpad.spec
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          packaging/linux/build-deb.sh "$VERSION" amd64
+          tar -C dist -czf "dist/lanpad-$VERSION-linux-x86_64.tar.gz" lanpad
+          mkdir -p out && cp dist/*.deb dist/*.tar.gz out/
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p out
+          tar -C dist -czf "out/lanpad-$VERSION-macos-arm64.tar.gz" lanpad
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$env:VERSION" packaging\windows\lanpad.iss
+          New-Item -ItemType Directory -Force out | Out-Null
+          Copy-Item "dist\LANpad-Setup-$env:VERSION.exe" out\
+          Compress-Archive -Path dist\lanpad\* -DestinationPath "out\lanpad-$env:VERSION-windows-x64-portable.zip"
+
       - uses: actions/upload-artifact@v4
         with:
-          name: windows-dist
-          path: |
-            dist/*.exe
-            dist/*.zip
+          name: dist-${{ matrix.target }}
+          path: out/*
+          if-no-files-found: error
 
   publish:
-    needs: [version, build-linux, build-macos, build-windows]
+    needs: [version, build]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
-          path: release-artifacts
-      - name: Create Release
+          path: artifacts
+          merge-multiple: true
+
+      - name: Checksums
+        run: |
+          cd artifacts
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.version.outputs.version }}
-          name: LANpad v${{ needs.version.outputs.version }}
-          files: release-artifacts/**/*.*
+          tag_name: v${{ env.VERSION }}
+          name: LANpad v${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          files: artifacts/*
           draft: false
           prerelease: false
+          body: |
+            ## LANpad v${{ env.VERSION }} — Cross-Platform LAN Trackpad & Keyboard
+
+            - **Linux (Ubuntu/Debian):** Download `lanpad_${{ env.VERSION }}_amd64.deb` and install with `sudo apt install ./lanpad_${{ env.VERSION }}_amd64.deb`
+            - **Windows:** Download and run `LANpad-Setup-${{ env.VERSION }}.exe` (or use the portable zip)
+            - **macOS:** Download `lanpad-${{ env.VERSION }}-macos-arm64.tar.gz` (or install via Homebrew cask)
+            - **Mobile:** Connect from your iOS or Android device using the Expo 58 app in `mobile/`
+
+      - name: Refresh the landing page
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run pages.yml || true
