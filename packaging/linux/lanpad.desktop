@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=LANpad
+Comment=Control your computer keyboard and mouse from Mac, phone, or browser over LAN
+Exec=lanpad
+Icon=lanpad
+Terminal=false
+Type=Application
+Categories=Utility;RemoteAccess;Network;
+StartupNotify=false
+Keywords=touchpad;mouse;keyboard;remote;lan;trackpad;

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LANpad — Control your computer with your trackpad, phone, or browser</title>
+<meta name="description" content="LANpad turns your Mac trackpad, iPhone, Android, or laptop into a zero-lag wireless mouse and keyboard over your local Wi-Fi. Free and open source.">
+<meta property="og:title" content="LANpad — Zero-lag LAN remote trackpad & keyboard">
+<meta property="og:description" content="Use your Mac trackpad, phone, or browser to drive your Ubuntu, Windows, or macOS computer with native fluid gestures.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0f172a">
+<link rel="icon" href="assets/lanpad.svg" type="image/svg+xml">
+<link rel="stylesheet" href="site.css">
+<script src="site.js" defer></script>
+</head>
+<body>
+<div class="page-container">
+
+<nav class="nav">
+  <a class="brand" href="#top">
+    <img src="assets/lanpad.svg" alt="LANpad Logo" class="logo">
+    <span>LANpad</span>
+  </a>
+  <div class="nav-links">
+    <a href="#download" data-i18n="nav.download">Download</a>
+    <a href="#features" data-i18n="nav.features">Features</a>
+    <a href="#architecture" data-i18n="nav.architecture">Architecture</a>
+    <a href="#faq" data-i18n="nav.faq">FAQ</a>
+    <a href="https://github.com/mohamedjs/lanpad" target="_blank" rel="noopener" class="gh-link">GitHub ↗</a>
+  </div>
+  <div class="nav-actions">
+    <div class="seg small" id="lang-switch" role="group" aria-label="Language">
+      <button data-value="en" class="active">EN</button>
+      <button data-value="ar">عربي</button>
+    </div>
+    <button class="icon-btn" id="theme-toggle" aria-label="Toggle Theme">◐</button>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-copy">
+    <div class="badge-pill" data-i18n="hero.badge">⚡ Ultra-low latency over local Wi-Fi</div>
+    <h1 data-i18n="hero.title">Use your Mac trackpad or phone on any desktop.</h1>
+    <p class="lead" data-i18n="hero.lead">
+      Move, tap, glide, and type with zero lag. LANpad forwards raw binary pointer lock events and native keystrokes directly over your local network. No cloud, no lag, no drivers.
+    </p>
+    <div class="hero-cta">
+      <a class="btn primary big" id="hero-download" href="#download">
+        <span class="os-icon" id="hero-os-icon"></span>
+        <span id="hero-download-text">Download for Linux</span>
+      </a>
+      <a class="btn ghost big" href="#simulator" data-i18n="hero.try">Try Live Demo</a>
+    </div>
+    <p class="version-hint" id="hero-version">v1.0.0 · MIT License · Free & Open Source</p>
+  </div>
+
+  <div class="hero-preview" id="simulator">
+    <div class="card pad-card">
+      <div class="pad-header">
+        <div class="status-dot online"></div>
+        <span class="pad-status" data-i18n="demo.connected">Interactive Trackpad Demo</span>
+        <span class="pad-rtt" id="demo-rtt">0.8 ms</span>
+      </div>
+      <div class="touch-surface" id="demo-surface">
+        <div class="touch-hint" id="surface-hint" data-i18n="demo.hint">Glide mouse or drag touch here</div>
+        <div class="touch-pointer" id="demo-pointer"></div>
+      </div>
+      <div class="pad-controls">
+        <button class="btn btn-ctrl" id="btn-left-click" data-i18n="demo.left">Left Click</button>
+        <button class="btn btn-ctrl" id="btn-right-click" data-i18n="demo.right">Right Click</button>
+      </div>
+      <div class="packet-telemetry">
+        <span id="stat-packets">0 packets sent</span> · <span id="stat-pos">X: 0 Y: 0</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="download" class="section">
+  <div class="section-head">
+    <h2 data-i18n="dl.title">Get LANpad for your system</h2>
+    <p class="sub" data-i18n="dl.sub">Run the server on the machine you want to control. Connect from any Mac, PC, iPhone or Android.</p>
+  </div>
+
+  <div class="grid4" id="platforms">
+    <!-- Linux -->
+    <article class="card platform" data-os="linux">
+      <div class="os-head">
+        <span class="os-icon linux">🐧</span>
+        <h3>Linux</h3>
+        <span class="badge" data-i18n="dl.yours">Detected</span>
+      </div>
+      <p class="hint">Ubuntu 20.04+, Debian, Fedora, Arch</p>
+      <a class="btn primary block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.linux.deb">Download .deb (amd64)</a>
+      <a class="btn ghost block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.linux.tar">Portable .tar.gz</a>
+      <div class="cmd">
+        <code>sudo apt install ./lanpad_1.0.0_amd64.deb</code>
+        <button class="copy-btn" data-copy="sudo apt install ./lanpad_1.0.0_amd64.deb" title="Copy">📋</button>
+      </div>
+    </article>
+
+    <!-- macOS -->
+    <article class="card platform" data-os="macos">
+      <div class="os-head">
+        <span class="os-icon mac">🍏</span>
+        <h3>macOS</h3>
+        <span class="badge" data-i18n="dl.yours">Detected</span>
+      </div>
+      <p class="hint">macOS 12+ (Apple Silicon & Intel)</p>
+      <a class="btn primary block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.mac.arm">Apple Silicon (.tar.gz)</a>
+      <a class="btn ghost block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.mac.intel">Intel x86_64 (.tar.gz)</a>
+      <div class="cmd">
+        <code>brew install --cask mohamedjs/lanpad/lanpad</code>
+        <button class="copy-btn" data-copy="brew install --cask mohamedjs/lanpad/lanpad" title="Copy">📋</button>
+      </div>
+    </article>
+
+    <!-- Windows -->
+    <article class="card platform" data-os="windows">
+      <div class="os-head">
+        <span class="os-icon win">🪟</span>
+        <h3>Windows</h3>
+        <span class="badge" data-i18n="dl.yours">Detected</span>
+      </div>
+      <p class="hint">Windows 10 / 11 (64-bit)</p>
+      <a class="btn primary block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.win.setup">Installer Setup (.exe)</a>
+      <a class="btn ghost block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.win.portable">Portable ZIP</a>
+      <div class="cmd">
+        <code>winget install mohamedjs.lanpad</code>
+        <button class="copy-btn" data-copy="winget install mohamedjs.lanpad" title="Copy">📋</button>
+      </div>
+    </article>
+
+    <!-- Mobile (Expo iOS & Android) -->
+    <article class="card platform" data-os="mobile">
+      <div class="os-head">
+        <span class="os-icon mob">📱</span>
+        <h3>Mobile (Expo 58)</h3>
+      </div>
+      <p class="hint">iOS & Android with Expo</p>
+      <a class="btn primary block" href="https://github.com/mohamedjs/lanpad/tree/main/mobile" target="_blank" data-i18n="dl.mob.expo">Open Expo App</a>
+      <a class="btn ghost block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.mob.apk">Download Android APK</a>
+      <div class="cmd">
+        <code>npx expo start --tunnel</code>
+        <button class="copy-btn" data-copy="npx expo start --tunnel" title="Copy">📋</button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section id="features" class="section">
+  <div class="section-head">
+    <h2 data-i18n="feat.title">Built for fluid precision</h2>
+    <p class="sub" data-i18n="feat.sub">Designed to feel like the keyboard and mouse are directly wired to the machine.</p>
+  </div>
+
+  <div class="grid3">
+    <div class="card feat">
+      <span class="emoji">⚡</span>
+      <h3 data-i18n="feat.speed.t">5-Byte Binary Frames</h3>
+      <p data-i18n="feat.speed.d">Packs mouse moves into tight 5-byte delta buffers instead of heavy 30-byte JSON strings. Zero serialization overhead, zero lag.</p>
+    </div>
+    <div class="card feat">
+      <span class="emoji">🖐️</span>
+      <h3 data-i18n="feat.gestures.t">Native Momentum Gestures</h3>
+      <p data-i18n="feat.gestures.d">Two-finger scroll glides with sub-pixel momentum. Pinch-to-zoom and two-finger left/right swipes map seamlessly to workspace switching.</p>
+    </div>
+    <div class="card feat">
+      <span class="emoji">🔒</span>
+      <h3 data-i18n="feat.security.t">Keyboard Lock & TLS</h3>
+      <p data-i18n="feat.security.d">Self-signed HTTPS unlocks Chrome's Keyboard Lock API so Esc, Tab, and Cmd shortcuts pass through directly without being eaten by macOS.</p>
+    </div>
+    <div class="card feat">
+      <span class="emoji">📶</span>
+      <h3 data-i18n="feat.wifi.t">Wi-Fi Power-Save Heartbeat</h3>
+      <p data-i18n="feat.wifi.d">Sends a 1-byte keepalive every 16ms during active capture so the laptop Wi-Fi radio never enters sleep state mid-drag.</p>
+    </div>
+    <div class="card feat">
+      <span class="emoji">📱</span>
+      <h3 data-i18n="feat.mobile.t">Expo 58 Mobile Remote</h3>
+      <p data-i18n="feat.mobile.d">Turn your phone or tablet into an emergency wireless touchpad and keyboard with tap-to-click, scroll bars, and haptic feedback.</p>
+    </div>
+    <div class="card feat">
+      <span class="emoji">🛡️</span>
+      <h3 data-i18n="feat.privacy.t">100% Local & Private</h3>
+      <p data-i18n="feat.privacy.d">Traffic never leaves your local Wi-Fi network. Protected with a constant-time secret token generated on your host machine.</p>
+    </div>
+  </div>
+</section>
+
+<section id="architecture" class="section">
+  <div class="section-head">
+    <h2 data-i18n="arch.title">Modular Monolith Architecture</h2>
+    <p class="sub" data-i18n="arch.sub">Clean, decoupled domain architecture inspired by Lura.</p>
+  </div>
+
+  <div class="card arch-diagram">
+    <pre><code>
+src/lanpad/
+├── app.py            ── CLI presentation layer (serve, selftest, token)
+├── bootstrap.py      ── Composition root: the ONLY file that wires modules
+├── selftest.py       ── Comprehensive end-to-end self-diagnostics
+├── shared/           ── Cross-platform kernel (paths, network, protocol, errors)
+└── modules/
+    ├── auth/         ── TokenService: constant-time verification & rotation
+    ├── input/        ── Cross-platform mouse & keyboard engine:
+    │                    ├── linux.py   (X11 Xlib + XTEST)
+    │                    ├── windows.py (ctypes user32 SendInput)
+    │                    └── macos.py   (CoreGraphics / Quartz)
+    └── server/       ── High-performance HTTP & WebSocket server
+    </code></pre>
+  </div>
+</section>
+
+<section id="faq" class="section">
+  <div class="section-head">
+    <h2 data-i18n="faq.title">Frequently Asked Questions</h2>
+  </div>
+  <div class="faq-list">
+    <details class="card faq-item">
+      <summary data-i18n="faq.1.q">Do I need to install anything on the Mac or client laptop?</summary>
+      <p data-i18n="faq.1.a">No! Open the URL printed by LANpad in Chrome or any Chromium browser. Pointer Lock and full keyboard capture work right inside the browser.</p>
+    </details>
+    <details class="card faq-item">
+      <summary data-i18n="faq.2.q">How does the phone / tablet app work?</summary>
+      <p data-i18n="faq.2.a">The mobile app is built with modern Expo 58 (React Native). It connects to the same LANpad WebSocket port over Wi-Fi and provides a touch trackpad with haptic feedback.</p>
+    </details>
+    <details class="card faq-item">
+      <summary data-i18n="faq.3.q">Why does Chrome ask about a self-signed certificate when --tls is on?</summary>
+      <p data-i18n="faq.3.a">LANpad generates a local certificate on your machine for HTTPS. Chrome requires a secure context (HTTPS) to unlock the Keyboard Lock API so full-screen Esc, Tab, and Cmd keys reach your remote desktop.</p>
+    </details>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-content">
+    <div class="brand">
+      <img src="assets/lanpad.svg" alt="" class="logo">
+      <span>LANpad</span>
+    </div>
+    <p>Crafted by Mohamed · Licensed under MIT</p>
+    <p><a href="https://github.com/mohamedjs/lanpad" target="_blank" rel="noopener">GitHub Repository</a></p>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>

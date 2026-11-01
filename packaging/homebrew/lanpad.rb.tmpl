@@ -1,0 +1,21 @@
+cask "lanpad" do
+  version "__VERSION__"
+  sha256 "__SHA256__"
+
+  url "https://github.com/mohamedjs/lanpad/releases/download/v#{version}/lanpad-macos-arm64-#{version}.tar.gz"
+  name "LANpad"
+  desc "Zero-lag LAN remote trackpad and keyboard"
+  homepage "https://github.com/mohamedjs/lanpad"
+
+  binary "lanpad"
+
+  postflight do
+    system_command "/usr/bin/xattr",
+                   args: ["-rd", "com.apple.quarantine", "#{staged_path}/lanpad"]
+  end
+
+  zap trash: [
+    "~/Library/Application Support/lanpad",
+    "~/.lanpad-token",
+  ]
+end

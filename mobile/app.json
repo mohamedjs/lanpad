@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "LANpad",
+    "slug": "lanpad",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#0f172a",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mohamedjs.lanpad"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.mohamedjs.lanpad"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

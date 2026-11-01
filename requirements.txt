@@ -1,0 +1,2 @@
+# On Linux, python-xlib drives X11 via XTEST
+python-xlib>=0.33; sys_platform == 'linux'

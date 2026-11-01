@@ -1,0 +1,4 @@
+"""LANpad — Cross-platform LAN trackpad & keyboard remote control."""
+
+__version__ = "1.0.0"
+__all__ = ["__version__"]

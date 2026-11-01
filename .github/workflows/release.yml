@@ -1,0 +1,113 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build (e.g. 1.0.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        run: |
+          CODE=$(grep -oP '__version__ = "\K[^"]+' src/lanpad/__init__.py)
+          V="${{ github.event.inputs.version }}"
+          if [ -z "$V" ] && [ "$GITHUB_REF_TYPE" = "tag" ]; then V="${GITHUB_REF_NAME#v}"; fi
+          [ -n "$V" ] || V="$CODE"
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+
+  build-linux:
+    needs: [version]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: sudo apt-get update && sudo apt-get install -y python3-xlib dpkg-dev
+      - run: |
+          cd web && npm install && npm run build && cd ..
+          pip install pyinstaller python-xlib
+          pyinstaller packaging/pyinstaller/lanpad.spec
+          packaging/linux/build-deb.sh "${{ needs.version.outputs.version }}" amd64
+          tar -czf "dist/lanpad-linux-amd64-${{ needs.version.outputs.version }}.tar.gz" -C dist lanpad
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-dist
+          path: |
+            dist/*.deb
+            dist/*.tar.gz
+
+  build-macos:
+    needs: [version]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: |
+          cd web && npm install && npm run build && cd ..
+          pip install pyinstaller pyobjc-core
+          pyinstaller packaging/pyinstaller/lanpad.spec
+          tar -czf "dist/lanpad-macos-arm64-${{ needs.version.outputs.version }}.tar.gz" -C dist lanpad
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-dist
+          path: dist/*.tar.gz
+
+  build-windows:
+    needs: [version]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: |
+          cd web
+          npm install
+          npm run build
+          cd ..
+          pip install pyinstaller
+          pyinstaller packaging/pyinstaller/lanpad.spec
+          iscc /DAppVersion=${{ needs.version.outputs.version }} packaging/windows/lanpad.iss
+          Compress-Archive -Path dist\lanpad -DestinationPath "dist\lanpad-windows-x64-${{ needs.version.outputs.version }}.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-dist
+          path: |
+            dist/*.exe
+            dist/*.zip
+
+  publish:
+    needs: [version, build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.version }}
+          name: LANpad v${{ needs.version.outputs.version }}
+          files: release-artifacts/**/*.*
+          draft: false
+          prerelease: false

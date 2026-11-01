@@ -1,0 +1,31 @@
+[project]
+name = "lanpad"
+version = "1.0.0"
+description = "LANpad — Cross-platform LAN trackpad & keyboard remote control: use your Mac, Windows, Linux, iOS or Android device to drive your desktop"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Mohamed" }]
+dependencies = []
+
+[project.optional-dependencies]
+linux = ["python-xlib>=0.33"]
+macos = ["pyobjc-core>=9.0"]
+windows = []
+dev = ["pytest>=7.0", "pyinstaller>=6.0"]
+
+[project.scripts]
+lanpad = "lanpad.app:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+lanpad = [
+    "web/dist/*",
+    "web/dist/assets/*",
+]
