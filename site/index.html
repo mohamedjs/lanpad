@@ -82,7 +82,7 @@
     <p class="sub" data-i18n="dl.sub">Run the server on the machine you want to control. Connect from any Mac, PC, iPhone or Android.</p>
   </div>
 
-  <div class="grid4" id="platforms">
+  <div class="grid3" id="platforms">
     <!-- Linux -->
     <article class="card platform" data-os="linux">
       <div class="os-head">
@@ -91,8 +91,8 @@
         <span class="badge" data-i18n="dl.yours">Detected</span>
       </div>
       <p class="hint">Ubuntu 20.04+, Debian, Fedora, Arch</p>
-      <a class="btn primary block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.linux.deb">Download .deb (amd64)</a>
-      <a class="btn ghost block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.linux.tar">Portable .tar.gz</a>
+      <a class="btn primary block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-asset="deb" data-i18n="dl.linux.deb">Download .deb (amd64)</a>
+      <a class="btn ghost block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-asset="tar" data-i18n="dl.linux.tar">Portable .tar.gz</a>
       <div class="cmd">
         <code>sudo apt install ./lanpad_1.0.0_amd64.deb</code>
         <button class="copy-btn" data-copy="sudo apt install ./lanpad_1.0.0_amd64.deb" title="Copy">📋</button>
@@ -107,8 +107,8 @@
         <span class="badge" data-i18n="dl.yours">Detected</span>
       </div>
       <p class="hint">macOS 12+ (Apple Silicon & Intel)</p>
-      <a class="btn primary block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.mac.arm">Apple Silicon (.tar.gz)</a>
-      <a class="btn ghost block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.mac.intel">Intel x86_64 (.tar.gz)</a>
+      <a class="btn primary block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-asset="mac-arm" data-i18n="dl.mac.arm">Apple Silicon (.tar.gz)</a>
+      <a class="btn ghost block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-asset="mac-intel" data-i18n="dl.mac.intel">Intel x86_64 (.tar.gz)</a>
       <div class="cmd">
         <code>brew install --cask mohamedjs/lanpad/lanpad</code>
         <button class="copy-btn" data-copy="brew install --cask mohamedjs/lanpad/lanpad" title="Copy">📋</button>
@@ -123,26 +123,11 @@
         <span class="badge" data-i18n="dl.yours">Detected</span>
       </div>
       <p class="hint">Windows 10 / 11 (64-bit)</p>
-      <a class="btn primary block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.win.setup">Installer Setup (.exe)</a>
-      <a class="btn ghost block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.win.portable">Portable ZIP</a>
+      <a class="btn primary block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-asset="setup" data-i18n="dl.win.setup">Installer Setup (.exe)</a>
+      <a class="btn ghost block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-asset="portable" data-i18n="dl.win.portable">Portable ZIP</a>
       <div class="cmd">
         <code>winget install mohamedjs.lanpad</code>
         <button class="copy-btn" data-copy="winget install mohamedjs.lanpad" title="Copy">📋</button>
-      </div>
-    </article>
-
-    <!-- Mobile (Expo iOS & Android) -->
-    <article class="card platform" data-os="mobile">
-      <div class="os-head">
-        <span class="os-icon mob">📱</span>
-        <h3>Mobile (Expo 58)</h3>
-      </div>
-      <p class="hint">iOS & Android with Expo</p>
-      <a class="btn primary block" href="https://github.com/mohamedjs/lanpad/tree/main/mobile" target="_blank" data-i18n="dl.mob.expo">Open Expo App</a>
-      <a class="btn ghost block" href="https://github.com/mohamedjs/lanpad/releases/latest" data-i18n="dl.mob.apk">Download Android APK</a>
-      <div class="cmd">
-        <code>npx expo start --tunnel</code>
-        <button class="copy-btn" data-copy="npx expo start --tunnel" title="Copy">📋</button>
       </div>
     </article>
   </div>
@@ -177,7 +162,7 @@
     </div>
     <div class="card feat">
       <span class="emoji">📱</span>
-      <h3 data-i18n="feat.mobile.t">Expo 58 Mobile Remote</h3>
+      <h3 data-i18n="feat.mobile.t">Mobile & Tablet Remote</h3>
       <p data-i18n="feat.mobile.d">Turn your phone or tablet into an emergency wireless touchpad and keyboard with tap-to-click, scroll bars, and haptic feedback.</p>
     </div>
     <div class="card feat">
@@ -223,7 +208,7 @@ src/lanpad/
     </details>
     <details class="card faq-item">
       <summary data-i18n="faq.2.q">How does the phone / tablet app work?</summary>
-      <p data-i18n="faq.2.a">The mobile app is built with modern Expo 58 (React Native). It connects to the same LANpad WebSocket port over Wi-Fi and provides a touch trackpad with haptic feedback.</p>
+      <p data-i18n="faq.2.a">You can open LANpad directly in your mobile browser, or use the native iOS and Android apps once released to connect over your local Wi-Fi.</p>
     </details>
     <details class="card faq-item">
       <summary data-i18n="faq.3.q">Why does Chrome ask about a self-signed certificate when --tls is on?</summary>

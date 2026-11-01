@@ -36,8 +36,6 @@ const T = {
     "dl.linux.req": "Ubuntu 20.04+, Debian, Fedora, Arch",
     "dl.linux.deb": "Download .deb (amd64)",
     "dl.linux.tar": "Portable .tar.gz",
-    "dl.mob.expo": "Open Expo 58 App",
-    "dl.mob.apk": "Download Android APK",
     "dl.all": "All releases",
     "feat.title": "Built for fluid precision",
     "feat.sub": "Designed to feel like the keyboard and mouse are directly wired to the machine.",
@@ -49,7 +47,7 @@ const T = {
     "feat.security.d": "Self-signed HTTPS unlocks Chrome's Keyboard Lock API so Esc, Tab, and Cmd shortcuts pass through directly without being eaten by macOS.",
     "feat.wifi.t": "Wi-Fi Power-Save Heartbeat",
     "feat.wifi.d": "Sends a 1-byte keepalive every 16ms during active capture so the laptop Wi-Fi radio never enters sleep state mid-drag.",
-    "feat.mobile.t": "Expo 58 Mobile Remote",
+    "feat.mobile.t": "Mobile & Tablet Remote",
     "feat.mobile.d": "Turn your phone or tablet into an emergency wireless touchpad and keyboard with tap-to-click, scroll bars, and haptic feedback.",
     "feat.privacy.t": "100% Local & Private",
     "feat.privacy.d": "Traffic never leaves your local Wi-Fi network. Protected with a constant-time secret token generated on your host machine.",
@@ -59,7 +57,7 @@ const T = {
     "faq.1.q": "Do I need to install anything on the Mac or client laptop?",
     "faq.1.a": "No! Open the URL printed by LANpad in Chrome or any Chromium browser. Pointer Lock and full keyboard capture work right inside the browser.",
     "faq.2.q": "How does the phone / tablet app work?",
-    "faq.2.a": "The mobile app is built with modern Expo 58 (React Native). It connects to the same LANpad WebSocket port over Wi-Fi and provides a touch trackpad with haptic feedback.",
+    "faq.2.a": "You can open LANpad directly in your mobile browser, or connect using the native iOS and Android apps once released over your local Wi-Fi.",
     "faq.3.q": "Why does Chrome ask about a self-signed certificate when --tls is on?",
     "faq.3.a": "LANpad generates a local certificate on your machine for HTTPS. Chrome requires a secure context (HTTPS) to unlock the Keyboard Lock API so full-screen Esc, Tab, and Cmd keys reach your remote desktop."
   },
@@ -95,8 +93,6 @@ const T = {
     "dl.linux.req": "أوبونتو، ديبيان، فيدورا، وآرش",
     "dl.linux.deb": "تحميل .deb (لينكس)",
     "dl.linux.tar": "نسخة محمولة .tar.gz",
-    "dl.mob.expo": "فتح تطبيق Expo 58",
-    "dl.mob.apk": "تحميل تطبيق أندرويد APK",
     "dl.all": "كل الإصدارات",
     "feat.title": "دقة وانسيابية استثنائية",
     "feat.sub": "صُمم ليعطيك إحساس أن الفأرة ولوحة المفاتيح متصلة بسلك مباشر.",
@@ -108,7 +104,7 @@ const T = {
     "feat.security.d": "اتصال HTTPS آمن يفعّل ميزة Keyboard Lock في كروم لعدم فقدان أزرار Esc و Tab و Cmd في الماك.",
     "feat.wifi.t": "نبضات منع خمول الواي فاي",
     "feat.wifi.d": "إرسال نبضة خفيفة كل 16ms أثناء الاستخدام النشط لمنع بطاقة الواي فاي من الدخول في وضع توفير الطاقة.",
-    "feat.mobile.t": "تطبيق محمول Expo 58",
+    "feat.mobile.t": "تطبيق الهاتف والأجهزة اللوحية",
     "feat.mobile.d": "حول هاتفك أو جهازك اللوحي إلى تراك باد ولوحة مفاتيح لاسلكية متكاملة مع اهتزازات تفاعلية.",
     "feat.privacy.t": "محلي 100% وآمن",
     "feat.privacy.d": "البيانات لا تغادر شبكتك المحلية إطلاقاً، ومحمية برمز دخول سري ثابت يتم توليده محلياً.",
@@ -118,7 +114,7 @@ const T = {
     "faq.1.q": "هل أحتاج تثبيت أي برنامج على جهاز الماك؟",
     "faq.1.a": "لا! يكفي فتح الرابط المطبوع في متصفح كروم، وستعمل لوحة اللمس والمفاتيح فوراً داخل المتصفح.",
     "faq.2.q": "كيف يعمل تطبيق الهاتف والأجهزة اللوحية؟",
-    "faq.2.a": "التطبيق مبني بتقنية Expo 58 (React Native الحديثة)، يتصل مباشرة بمنفذ الخادم ويوفر لوحة لمس واهتزازات لمسية سلسة.",
+    "faq.2.a": "يمكنك فتح LANpad مباشرة من متصفح هاتفك أو استخدام التطبيق الأصلي للآيفون والأندرويد فور إطلاقه للاتصال عبر الواي فاي المحلي.",
     "faq.3.q": "لماذا يظهر تحذير الشهادة عند تفعيل --tls؟",
     "faq.3.a": "لأن الشهادة مولدة محلياً على جهازك؛ متصفح كروم يشترط اتصال HTTPS لفتح صلاحيات Keyboard Lock الكاملة."
   }
@@ -220,7 +216,7 @@ function renderDownloads() {
   if (heroIcon) heroIcon.textContent = icons[osKey] || "🐧";
   if (heroText) heroText.textContent = t("hero.download", { os: osName });
 
-  const heroAssetMap = { windows: "setup", macos: "mac-arm", linux: "deb", mobile: "expo" };
+  const heroAssetMap = { windows: "setup", macos: "mac-arm", linux: "deb", mobile: "deb" };
   const heroAsset = asset(heroAssetMap[osKey]);
   if (heroBtn) {
     if (heroAsset) {
